@@ -1,8 +1,7 @@
-# SimWeapons
 
-## How to add this plugin to an Unreal Engine project
+# How to add this plugin to an Unreal Engine project
 
-### 1. Create the `Plugins` folder
+## 1. Create the `Plugins` folder
 
 In the root folder of your Unreal Engine project, there should be a `Plugins` folder.
 
@@ -18,9 +17,8 @@ YourProject/
 
 If the `Plugins` folder does not exist, create it manually.
 
----
 
-### 2. Clone the plugin into the `Plugins` folder
+## 2. Clone the plugin into the `Plugins` folder
 
 Open a terminal inside the `Plugins` folder of your Unreal Engine project:
 
@@ -46,9 +44,8 @@ YourProject/
         └── README.md
 ```
 
----
 
-### 3. Open the Unreal Engine project
+## 3. Open the Unreal Engine project
 
 Open your project file:
 
@@ -64,9 +61,8 @@ Yes
 
 Unreal Engine will try to build the C++ module of the plugin.
 
----
 
-### 4. Enable the plugin
+## 4. Enable the plugin
 
 In Unreal Editor, open:
 
@@ -84,7 +80,6 @@ Make sure the plugin is enabled.
 
 If Unreal Engine asks to restart the editor, restart it.
 
----
 
 ## How to check that the plugin works
 
