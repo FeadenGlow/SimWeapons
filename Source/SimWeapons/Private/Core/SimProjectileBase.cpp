@@ -34,3 +34,14 @@ float ASimProjectileBase::GetLifeTime() const
 {
 	return LifeTime;
 }
+
+bool ASimProjectileBase::CanDetonateFromExplosion() const
+{
+	return bCanDetonateFromExplosion;
+}
+
+void ASimProjectileBase::DetonateFromExplosion_Implementation(const FVector& TriggerLocation)
+{
+	// Base projectile does nothing.
+	// Rocket and Bomb projectiles can override this method.
+}

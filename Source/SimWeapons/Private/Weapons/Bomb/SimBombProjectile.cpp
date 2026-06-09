@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Weapons/Rocket/SimRocketProjectile.h"
+#include "Weapons/Bomb/SimBombProjectile.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "Components/SphereComponent.h"
@@ -9,14 +9,14 @@
 #include "Weapons/SimExplosionComponent.h"
 
 // Sets default values
-ASimRocketProjectile::ASimRocketProjectile()
+ASimBombProjectile::ASimBombProjectile()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
 	SetRootComponent(CollisionComponent);
 
-	CollisionComponent->InitSphereRadius(15.0f);
+	CollisionComponent->InitSphereRadius(25.0f);
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Block);
@@ -27,21 +27,29 @@ ASimRocketProjectile::ASimRocketProjectile()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->bShouldBounce = false;
 	ProjectileMovementComponent->bSweepCollision = true;
-	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	ProjectileMovementComponent->ProjectileGravityScale = GravityScale;
 
 	ExplosionComponent = CreateDefaultSubobject<USimExplosionComponent>(TEXT("ExplosionComponent"));
 
-	Speed = 3000.0f;
-	Damage = 120.0f;
-	LifeTime = 5.0f;
-
+	// Bomb is explosive, so it can be detonated by another explosion.
 	bCanDetonateFromExplosion = true;
 
-	StraightFlightTime = 1.2f;
-	GravityScaleAfterStraightFlight = 1.0f;
+	// Bomb defaults.
+	Damage = 150.0f;
+	Speed = 0.0f;
+	LifeTime = 20.0f;
+
+	bExplodeOnHit = true;
+	bExplodeAfterFuse = true;
+	FuseTime = 8.0f;
+
+	GravityScale = 1.0f;
+	ForwardDropSpeed = 0.0f;
+	DownwardDropSpeed = 100.0f;
+	MaximumFallSpeed = 4000.0f;
 }
 
-void ASimRocketProjectile::BeginPlay()
+void ASimBombProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -50,7 +58,7 @@ void ASimRocketProjectile::BeginPlay()
 
 	if (CollisionComponent)
 	{
-		CollisionComponent->OnComponentHit.AddDynamic(this, &ASimRocketProjectile::OnRocketHit);
+		CollisionComponent->OnComponentHit.AddDynamic(this, &ASimBombProjectile::OnBombHit);
 
 		if (bIgnoreOwnerCollision)
 		{
@@ -63,62 +71,45 @@ void ASimRocketProjectile::BeginPlay()
 
 	if (ProjectileMovementComponent)
 	{
-		ProjectileMovementComponent->InitialSpeed = Speed;
-		ProjectileMovementComponent->MaxSpeed = Speed;
-		ProjectileMovementComponent->Velocity = GetActorForwardVector() * Speed;
+		ProjectileMovementComponent->InitialSpeed = 0.0f;
+		ProjectileMovementComponent->MaxSpeed = MaximumFallSpeed;
+		ProjectileMovementComponent->ProjectileGravityScale = GravityScale;
 
-		if (bUseStraightFlightBeforeGravity)
-		{
-			ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+		const FVector InitialVelocity =
+			GetActorForwardVector() * ForwardDropSpeed -
+			GetActorUpVector() * DownwardDropSpeed;
 
-			if (StraightFlightTime > 0.0f)
-			{
-				GetWorldTimerManager().SetTimer(
-					StraightFlightTimerHandle,
-					this,
-					&ASimRocketProjectile::EnableGravityAfterStraightFlight,
-					StraightFlightTime,
-					false
-				);
-			}
-			else
-			{
-				EnableGravityAfterStraightFlight();
-			}
-		}
-		else
-		{
-			ProjectileMovementComponent->ProjectileGravityScale = GravityScaleAfterStraightFlight;
-		}
+		ProjectileMovementComponent->Velocity = InitialVelocity;
 
-		ProjectileMovementComponent->OnProjectileStop.AddDynamic(this, &ASimRocketProjectile::OnRocketStopped);
+		ProjectileMovementComponent->OnProjectileStop.AddDynamic(this, &ASimBombProjectile::OnBombStopped);
 	}
 
-	OnRocketLaunched();
+	if (bExplodeAfterFuse && FuseTime > 0.0f)
+	{
+		GetWorldTimerManager().SetTimer(
+			FuseTimerHandle,
+			this,
+			&ASimBombProjectile::ExplodeByFuse,
+			FuseTime,
+			false
+		);
+	}
+
+	OnBombDropped();
 }
 
-void ASimRocketProjectile::DetonateFromExplosion_Implementation(const FVector& TriggerLocation)
+void ASimBombProjectile::DetonateFromExplosion_Implementation(const FVector& TriggerLocation)
 {
 	if (bHasExploded)
 	{
 		return;
 	}
 
-	// The external explosion triggers this rocket, but this rocket explodes at its own location.
+	// Another explosion triggers this bomb, but this bomb explodes at its own location.
 	Explode(GetActorLocation());
 }
 
-void ASimRocketProjectile::EnableGravityAfterStraightFlight()
-{
-	if (!ProjectileMovementComponent || bHasExploded)
-	{
-		return;
-	}
-
-	ProjectileMovementComponent->ProjectileGravityScale = GravityScaleAfterStraightFlight;
-}
-
-void ASimRocketProjectile::OnRocketHit(
+void ASimBombProjectile::OnBombHit(
 	UPrimitiveComponent* HitComponent,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
@@ -126,6 +117,11 @@ void ASimRocketProjectile::OnRocketHit(
 	const FHitResult& Hit
 )
 {
+	if (!bExplodeOnHit)
+	{
+		return;
+	}
+
 	FVector ExplosionLocation = FVector(Hit.ImpactPoint);
 
 	if (ExplosionLocation.IsNearlyZero())
@@ -136,8 +132,13 @@ void ASimRocketProjectile::OnRocketHit(
 	Explode(ExplosionLocation);
 }
 
-void ASimRocketProjectile::OnRocketStopped(const FHitResult& ImpactResult)
+void ASimBombProjectile::OnBombStopped(const FHitResult& ImpactResult)
 {
+	if (!bExplodeOnHit)
+	{
+		return;
+	}
+
 	FVector ExplosionLocation = FVector(ImpactResult.ImpactPoint);
 
 	if (ExplosionLocation.IsNearlyZero())
@@ -148,7 +149,17 @@ void ASimRocketProjectile::OnRocketStopped(const FHitResult& ImpactResult)
 	Explode(ExplosionLocation);
 }
 
-void ASimRocketProjectile::Explode(const FVector& ExplosionLocation)
+void ASimBombProjectile::ExplodeByFuse()
+{
+	if (bHasExploded)
+	{
+		return;
+	}
+
+	Explode(GetActorLocation());
+}
+
+void ASimBombProjectile::Explode(const FVector& ExplosionLocation)
 {
 	if (bHasExploded)
 	{
@@ -157,7 +168,7 @@ void ASimRocketProjectile::Explode(const FVector& ExplosionLocation)
 
 	bHasExploded = true;
 
-	GetWorldTimerManager().ClearTimer(StraightFlightTimerHandle);
+	GetWorldTimerManager().ClearTimer(FuseTimerHandle);
 
 	if (ExplosionComponent)
 	{
@@ -169,7 +180,7 @@ void ASimRocketProjectile::Explode(const FVector& ExplosionLocation)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Rocket projectile cannot explode: ExplosionComponent is missing."));
+		UE_LOG(LogTemp, Warning, TEXT("Bomb projectile cannot explode: ExplosionComponent is missing."));
 	}
 
 	OnExplosionTriggered(ExplosionLocation);

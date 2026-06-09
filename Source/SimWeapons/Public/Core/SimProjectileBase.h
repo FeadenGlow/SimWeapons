@@ -24,6 +24,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Projectile")
 	float GetLifeTime() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Projectile")
+	bool CanDetonateFromExplosion() const;
+
+	// Called when another explosion tries to detonate this projectile.
+	// Rocket and Bomb projectiles can override this. Bullet projectiles should not.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Sim Weapons|Projectile")
+	void DetonateFromExplosion(const FVector& TriggerLocation);
+
+	virtual void DetonateFromExplosion_Implementation(const FVector& TriggerLocation);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -39,4 +49,9 @@ protected:
 	// How long projectile exists before being destroyed.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Projectile")
 	float LifeTime = 5.0f;
+
+	// If true, this projectile can be detonated by another explosion.
+	// Rockets and bombs should use true. Bullets should use false.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Projectile")
+	bool bCanDetonateFromExplosion = false;
 };

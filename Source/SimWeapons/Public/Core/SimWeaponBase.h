@@ -12,10 +12,8 @@ class SIMWEAPONS_API ASimWeaponBase : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	ASimWeaponBase();
 
-	// Main weapon action. Rocket and Bomb weapons will override this method.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Sim Weapons")
 	void Fire();
 
@@ -33,23 +31,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
 	int32 GetMaxAmmo() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
+	int32 GetWeaponSlotCost() const;
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Tries to spend one ammo unit.
-	// Child classes should call this before actually firing.
 	bool TryConsumeAmmo();
 
-	// Battery charge cost for one weapon launch/fire action.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons")
 	float BatteryCost = 5.0f;
 
-	// Maximum ammo count for this weapon.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons")
 	int32 MaxAmmo = 1;
 
-	// Current ammo count.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sim Weapons")
 	int32 CurrentAmmo = 1;
+
+	// How many weapon slots this weapon uses on the carrier.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons", meta = (ClampMin = "1"))
+	int32 WeaponSlotCost = 1;
 };

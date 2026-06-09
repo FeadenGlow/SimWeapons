@@ -20,6 +20,10 @@ public:
 	virtual void Fire_Implementation() override;
 
 protected:
+	// Called in Blueprint after rocket projectile was successfully spawned.
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sim Weapons|Rocket")
+	void OnRocketFired(ASimRocketProjectile* SpawnedProjectile);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Rocket")
 	TSubclassOf<ASimRocketProjectile> RocketProjectileClass;
 

@@ -5,11 +5,11 @@
 #include "Engine/World.h"
 #include "Weapons/Rocket/SimRocketProjectile.h"
 
-// Sets default values
 ASimRocketWeapon::ASimRocketWeapon()
 {
 	BatteryCost = 20.0f;
 	MaxAmmo = 1;
+	WeaponSlotCost = 2;
 }
 
 void ASimRocketWeapon::Fire_Implementation()
@@ -46,12 +46,20 @@ void ASimRocketWeapon::Fire_Implementation()
 	SpawnParams.Instigator = Cast<APawn>(GetOwner());
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	World->SpawnActor<ASimRocketProjectile>(
+	ASimRocketProjectile* SpawnedProjectile = World->SpawnActor<ASimRocketProjectile>(
 		RocketProjectileClass,
 		SpawnLocation,
 		SpawnRotation,
 		SpawnParams
 	);
+
+	if (!SpawnedProjectile)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Rocket weapon failed to spawn projectile."));
+		return;
+	}
+
+	OnRocketFired(SpawnedProjectile);
 
 	UE_LOG(LogTemp, Log, TEXT("Rocket fired. Ammo left: %d"), GetCurrentAmmo());
 }

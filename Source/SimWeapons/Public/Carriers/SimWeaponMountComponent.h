@@ -7,40 +7,47 @@
 #include "Core/SimWeaponBase.h"
 #include "SimWeaponMountComponent.generated.h"
 
+class USimWeaponCarrierComponent;
+
 UCLASS(ClassGroup = (SimWeapons), meta = (BlueprintSpawnableComponent))
 class SIMWEAPONS_API USimWeaponMountComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	USimWeaponMountComponent();
 
-	// Spawns weapon actor and attaches it to this mount component.
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	ASimWeaponBase* SpawnWeapon();
 
-	// Calls Fire() on the spawned weapon.
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	void FireMountedWeapon();
 
-	// Returns currently spawned weapon.
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
+	bool CanFireMountedWeapon() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	ASimWeaponBase* GetSpawnedWeapon() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
+	USimWeaponCarrierComponent* GetCarrierComponent() const;
+
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	// Weapon class that will be spawned on this mount.
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Mount")
 	TSubclassOf<ASimWeaponBase> WeaponClass;
 
-	// If true, weapon will be spawned automatically on BeginPlay.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Mount")
 	bool bSpawnWeaponOnBeginPlay = true;
 
-	// Spawned weapon instance.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sim Weapons|Mount")
 	ASimWeaponBase* SpawnedWeapon = nullptr;
+
+private:
+	bool bWeaponSlotRegistered = false;
+
+	int32 RegisteredWeaponSlotCost = 0;
 };
