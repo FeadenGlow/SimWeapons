@@ -23,7 +23,16 @@ public:
 	bool CanFire() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
+	bool IsFireOnCooldown() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
+	float GetRemainingFireCooldown() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
 	float GetBatteryCost() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
+	float GetFireCooldown() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons")
 	int32 GetCurrentAmmo() const;
@@ -39,6 +48,8 @@ protected:
 
 	bool TryConsumeAmmo();
 
+	void StartFireCooldown();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons")
 	float BatteryCost = 5.0f;
 
@@ -51,4 +62,15 @@ protected:
 	// How many weapon slots this weapon uses on the carrier.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons", meta = (ClampMin = "1"))
 	int32 WeaponSlotCost = 1;
+
+	// Delay between shots in seconds.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Fire Rate", meta = (ClampMin = "0.0"))
+	float FireCooldown = 0.5f;
+
+	// If false, weapon can fire without delay.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons|Fire Rate")
+	bool bUseFireCooldown = true;
+
+private:
+	float LastFireTime = -100000.0f;
 };
