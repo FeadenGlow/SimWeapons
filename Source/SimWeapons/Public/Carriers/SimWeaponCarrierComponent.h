@@ -27,7 +27,7 @@ public:
 	void RestoreEnergy(float EnergyAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Carrier")
-	void ApplyCarrierDamage(float DamageAmount);
+	virtual void ApplyCarrierDamage(float DamageAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Carrier")
 	bool CanAttachWeapon(int32 RequiredSlots = 1) const;
