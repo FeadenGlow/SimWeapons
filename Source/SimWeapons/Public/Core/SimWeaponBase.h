@@ -50,6 +50,14 @@ protected:
 
 	void StartFireCooldown();
 
+	void NotifyAmmoChanged();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sim Weapons|Ammo")
+	void OnAmmoChanged(int32 NewCurrentAmmo, int32 NewMaxAmmo);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Sim Weapons|Ammo")
+	void OnOutOfAmmo();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sim Weapons")
 	float BatteryCost = 5.0f;
 

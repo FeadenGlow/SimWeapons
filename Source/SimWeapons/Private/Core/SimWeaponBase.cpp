@@ -15,6 +15,8 @@ void ASimWeaponBase::BeginPlay()
 
 	CurrentAmmo = MaxAmmo;
 	LastFireTime = -100000.0f;
+
+	NotifyAmmoChanged();
 }
 
 void ASimWeaponBase::Fire_Implementation()
@@ -103,6 +105,7 @@ bool ASimWeaponBase::TryConsumeAmmo()
 	CurrentAmmo--;
 
 	StartFireCooldown();
+	NotifyAmmoChanged();
 
 	return true;
 }
@@ -122,4 +125,14 @@ void ASimWeaponBase::StartFireCooldown()
 	}
 
 	LastFireTime = World->GetTimeSeconds();
+}
+
+void ASimWeaponBase::NotifyAmmoChanged()
+{
+	OnAmmoChanged(CurrentAmmo, MaxAmmo);
+
+	if (CurrentAmmo <= 0)
+	{
+		OnOutOfAmmo();
+	}
 }
