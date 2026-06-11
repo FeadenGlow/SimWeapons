@@ -7,7 +7,7 @@
 
 ASimRocketWeapon::ASimRocketWeapon()
 {
-	BatteryCost = 20.0f;
+	BatteryCost = 0.0f;
 	MaxAmmo = 1;
 	WeaponSlotCost = 2;
 }

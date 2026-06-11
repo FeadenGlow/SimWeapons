@@ -8,7 +8,7 @@
 
 ASimDefensiveLauncherWeapon::ASimDefensiveLauncherWeapon()
 {
-	BatteryCost = 10.0f;
+	BatteryCost = 0.0f;
 	MaxAmmo = 3;
 
 	// Active protection system is useful but compact.

@@ -8,7 +8,7 @@
 
 ASimMineWeapon::ASimMineWeapon()
 {
-	BatteryCost = 3.0f;
+	BatteryCost = 0.0f;
 	MaxAmmo = 3;
 
 	// Mine weapon uses one weapon slot.

@@ -122,6 +122,14 @@ ASimWeaponBase* USimWeaponMountComponent::SpawnWeapon()
 
 void USimWeaponMountComponent::FireMountedWeapon()
 {
+	float IgnoredReloadTime = 0.0f;
+	FireMountedWeaponWithReloadTime(IgnoredReloadTime);
+}
+
+bool USimWeaponMountComponent::FireMountedWeaponWithReloadTime(float& ReloadTime)
+{
+	ReloadTime = 0.0f;
+
 	if (!SpawnedWeapon)
 	{
 		SpawnWeapon();
@@ -129,7 +137,7 @@ void USimWeaponMountComponent::FireMountedWeapon()
 
 	if (!SpawnedWeapon)
 	{
-		return;
+		return false;
 	}
 
 	USimWeaponCarrierComponent* CarrierComponent = GetCarrierComponent();
@@ -137,19 +145,27 @@ void USimWeaponMountComponent::FireMountedWeapon()
 	if (!CarrierComponent)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SimWeaponMountComponent: Cannot fire because owner actor does not have SimWeaponCarrierComponent."));
-		return;
+		return false;
 	}
 
 	if (!CarrierComponent->IsAlive())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SimWeaponMountComponent: Cannot fire because carrier is destroyed."));
-		return;
+		return false;
 	}
 
 	if (!SpawnedWeapon->CanFire())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SimWeaponMountComponent: Mounted weapon cannot fire."));
-		return;
+		ReloadTime = SpawnedWeapon->GetRemainingFireCooldown();
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("SimWeaponMountComponent: Mounted weapon cannot fire. Remaining reload time: %.2f"),
+			ReloadTime
+		);
+
+		return false;
 	}
 
 	const float EnergyCost = SpawnedWeapon->GetBatteryCost();
@@ -157,10 +173,14 @@ void USimWeaponMountComponent::FireMountedWeapon()
 	if (!CarrierComponent->ConsumeEnergy(EnergyCost))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SimWeaponMountComponent: Not enough energy to fire weapon."));
-		return;
+		return false;
 	}
 
 	SpawnedWeapon->Fire();
+
+	ReloadTime = SpawnedWeapon->GetFireCooldown();
+
+	return true;
 }
 
 bool USimWeaponMountComponent::CanFireMountedWeapon() const
@@ -188,6 +208,16 @@ bool USimWeaponMountComponent::CanFireMountedWeapon() const
 	}
 
 	return CarrierComponent->HasEnoughEnergy(SpawnedWeapon->GetBatteryCost());
+}
+
+float USimWeaponMountComponent::GetMountedWeaponReloadTime() const
+{
+	if (!SpawnedWeapon)
+	{
+		return 0.0f;
+	}
+
+	return SpawnedWeapon->GetRemainingFireCooldown();
 }
 
 ASimWeaponBase* USimWeaponMountComponent::GetSpawnedWeapon() const

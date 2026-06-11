@@ -20,11 +20,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	ASimWeaponBase* SpawnWeapon();
 
+	// Old simple fire method. Kept for compatibility with existing Blueprints.
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	void FireMountedWeapon();
 
+	// Preferred fire method for battle systems.
+	// Returns true if the weapon was fired.
+	// ReloadTime is the delay in seconds before this weapon should be fired again.
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
+	bool FireMountedWeaponWithReloadTime(float& ReloadTime);
+
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	bool CanFireMountedWeapon() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
+	float GetMountedWeaponReloadTime() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Sim Weapons|Mount")
 	ASimWeaponBase* GetSpawnedWeapon() const;

@@ -8,7 +8,7 @@
 
 ASimShotgunWeapon::ASimShotgunWeapon()
 {
-	BatteryCost = 8.0f;
+	BatteryCost = 0.0f;
 	MaxAmmo = 6;
 
 	// For now shotgun uses one slot.

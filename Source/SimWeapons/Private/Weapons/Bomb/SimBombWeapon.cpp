@@ -9,7 +9,7 @@
 // Sets default values
 ASimBombWeapon::ASimBombWeapon()
 {
-	BatteryCost = 5.0f;
+	BatteryCost = 0.0f;
 	MaxAmmo = 1;
 
 	// Bomb uses only one weapon slot.
