@@ -38,6 +38,7 @@ public class SimWeapons : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"SensorSystem"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
